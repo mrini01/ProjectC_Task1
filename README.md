@@ -13,3 +13,10 @@
 * UCR NetID: osugi001
 * Student ID: 862296300
 * Task completed: Task 4 (Fire intensity Prediction)
+
+* ## Student 3: ##
+* Name: Tianshi Liu
+* E-mail: tliu222@ucr.edu
+* UCR NetID:tliu222
+* Student ID: X714911
+* Task completed: Task 2 (Spatial Analysis)
