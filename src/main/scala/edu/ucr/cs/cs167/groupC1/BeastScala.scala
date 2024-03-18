@@ -99,7 +99,8 @@ object BeastScala {
           //completeDF.printSchema()
           //completeDF.show()
 
-          completeDF.write.mode(SaveMode.Overwrite).parquet("wildfiredb_1")
+          //12. Write the saved data as a parquet file.
+          completeDF.write.mode(SaveMode.Overwrite).parquet("wildfiredb_ZIP")
 
           val t2 = System.nanoTime()
           println(s"Operation '$operation' on file '$inputFile' took ${(t2 - t1) * 1E-9} seconds")
