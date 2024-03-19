@@ -16,6 +16,8 @@ import org.apache.spark.sql.SparkSession
 import java.text.SimpleDateFormat
 import org.apache.commons.lang3.time.DateUtils
 import org.apache.spark.SparkConf
+import edu.ucr.cs.bdlab.beast._
+
 
 
 /**
@@ -109,73 +111,52 @@ object BeastScala {
           println(s"Operation '$operation' on file '$inputFile' took ${(t2 - t1) * 1E-9} seconds")
         //finished task 1
 
+        
         //TASK 2:
         case "task2" =>
-          val t3 = System.nanoTime()
-        def init(spark: SparkSession): Unit = {
-    // Start the CRSServer and store the information in SparkConf
-    val sparkContext = spark.sparkContext
-    //    CRSServer.startServer(sparkContext)
-    SparkSQLRegistration.registerUDT
-    SparkSQLRegistration.registerUDF(spark)
+        val t1 = System.nanoTime()
+        runTask2(sparkSession, args.slice(1, args.length))
+        val t2 = System.nanoTime()
+        println(s"Operation '$operation' on file '$inputFile' took ${(t2 - t1) * 1E-9} seconds")
+
+        val simple = new SimpleDateFormat("yyyy-MM-dd")
+
+  def formatDate(str: String): String = {
+    val date = DateUtils.parseDate(str, Array("yyyy-MM-dd", "MM/dd/yyyy"): _*)
+    simple.format(date)
   }
+  def runTask2(spark: SparkSession, args: Array[String]): Unit = {
+    val dataPath = args(0)
+    val countryPath = args(1)
+    val startDate = formatDate(args(2))
+    val endDate = formatDate(args(3))
 
-  def doTask(spark: SparkSession, dataPath: String, countryPath: String, startDate: String, endDate: String): Unit = {
-    println(s"document file => ${dataPath}")
+    // 1. Read the data file and register it into the temporary table named tmp_data.
     var dataDF = spark.read.parquet(dataPath)
-    dataDF.show()
-    println(s"struct1: ${dataDF.dtypes.toSeq}")
     dataDF.createOrReplaceTempView("tmp_data")
-
+    // 2. Convert the time string to a time format and register it in the temporary table tmp_data.
     val newColumnStr = dataDF.columns.map(c => if (Seq("acq_date").contains(c)) s"to_date(${c}) $c" else c).mkString(",")
     dataDF = spark.sql(s"select ${newColumnStr} from tmp_data")
-    println(s"struct2: ${dataDF.dtypes.toSeq}")
     dataDF.createOrReplaceTempView("tmp_data")
-    spark.sql(s"select count(*) cnt,min(acq_date) min_date,max(acq_date) max_date from tmp_data").show()
-
-    println(s"city file => ${countryPath}")
+    // 3. Read the city file and register it into the temporary table tmp_country.
     val countiesDF = spark.sparkContext.shapefile(countryPath).toDataFrame(spark)
-    countiesDF.show()
     countiesDF.createOrReplaceTempView("tmp_country")
+
+    // 4. Perform aggregation statistics on the data table and city table, filtering data using a WHERE condition.
     val sql =
       s"""
          |select b.GEOID,b.NAME,b.g,a.fire_intensity from (
          |  select County,sum(frp) fire_intensity from tmp_data where acq_date BETWEEN '${startDate}' AND '${endDate}' group by County
          |) a inner join tmp_country b on a.County = b.GEOID
          |""".stripMargin.trim
-    println(s"excecute SQL => ${sql}")
     val result = spark.sql(sql)
-    result.show()
+
+    // 5.Write the aggregated results to the target directory.
     result.toSpatialRDD.coalesce(1).saveAsShapefile("wildfireIntensityCounty")
   }
-
-  val simple = new SimpleDateFormat("yyyy-MM-dd")
-
-  def formatDate(str: String): String = {
-    val date = DateUtils.parseDate(str, Array("yyyy-MM-dd", "MM/dd/yyyy"): _*)
-    simple.format(date)
-  }
-
-  def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Analysis")
-    if (!conf.contains("spark.master"))
-      conf.setMaster("local[*]")
-    val spark = SparkSession.builder().config(conf).getOrCreate()
-    println(s"parameter => ${args.toSeq}")
-    val dataPath = args(0)
-    val countryPath = args(1)
-    val startDate = formatDate(args(2))
-    val endDate = formatDate(args(3))
-    init(spark)
-    doTask(spark, dataPath, countryPath, startDate, endDate)
-    spark.stop()
-  }
-
 }
-
-
-
-
+    // Task2 finished here
+    
         case "task4" =>
           // Start timing
           val task4Start = System.nanoTime()
