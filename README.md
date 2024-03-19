@@ -23,9 +23,9 @@
 
 * ## Question: ##
 Which of the following best describes the function of val ‘dataWithTime’ in the Spark code for Task 4?
-A. It filters the wildfire data to only include observations from the current year and month
-B. It adds new columns to the dataset for the year and month extracted from acquisition date
-C. It sorts the wildfire dataset by the date and time when each fire was detected.
+A. It filters the wildfire data to only include observations from the current year and month </br>
+B. It adds new columns to the dataset for the year and month extracted from acquisition date </br>
+C. It sorts the wildfire dataset by the date and time when each fire was detected. <br>
 
 Correct Answer: B
 
