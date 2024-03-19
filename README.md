@@ -22,7 +22,7 @@
 * Task completed: Task 2 (Spatial Analysis)
 
 * ## Question: ##
-Which of the following best describes the function of val ‘dataWithTime’ in the Spark code for Task 4?
+Which of the following best describes the function of val ‘dataWithTime’ in the Spark code for Task 4? </br>
 A. It filters the wildfire data to only include observations from the current year and month </br>
 B. It adds new columns to the dataset for the year and month extracted from acquisition date </br>
 C. It sorts the wildfire dataset by the date and time when each fire was detected. <br>
